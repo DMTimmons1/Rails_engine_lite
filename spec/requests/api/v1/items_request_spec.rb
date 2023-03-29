@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe "Merchants API" do
+describe "Items API" do
   before do
     @merchant_1 = Merchant.create!(name: "Dawson")
     @merchant_2 = Merchant.create!(name: "Scott")
@@ -10,37 +10,13 @@ describe "Merchants API" do
     @item_2 = Item.create!(name: "Gold", description: "Worth it's weight!", unit_price: 6500, merchant_id: @merchant_1.id)
     @item_3 = Item.create!(name: "Basketball Hoop", description: "Sturdy for dunking!", unit_price: 10000, merchant_id: @merchant_1.id)
   end
-  it "sends a list of merchants" do
-    get '/api/v1/merchants'
+  it "sends a list of items" do
+    get '/api/v1/items'
 
     expect(response).to be_successful
-    merchants = JSON.parse(response.body, symbolize_names: true)
-
-    expect(merchants[:data].count).to eq(3)
-
-    merchants[:data].each do |merchant|
-      expect(merchant[:attributes]).to have_key(:name)
-      expect(merchant[:attributes][:name]).to be_a(String)
-    end
-  end
-
-  it 'sends one merchant by its id' do
-    get "/api/v1/merchants/#{@merchant_1.id}"
-
-    expect(response).to be_successful
-    merchant = JSON.parse(response.body, symbolize_names: true)
-
-    expect(merchant[:data][:attributes]).to have_key(:name)
-    expect(merchant[:data][:attributes][:name]).to be_a(String)
-    expect(merchant[:data][:attributes][:name]).to eq("Dawson")
-  end
-
-  it 'sends the items associated with the merchant' do
-    get "/api/v1/merchants/#{@merchant_1.id}/items"
-
-    expect(response).to be_successful
-
     items = JSON.parse(response.body, symbolize_names: true)
+
+    expect(items[:data].count).to eq(3)
 
     items[:data].each do |item|
       expect(item[:attributes]).to have_key(:name)
