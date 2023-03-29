@@ -2,9 +2,9 @@ require 'rails_helper'
 
 describe "Merchants API" do
   before do
-    Merchant.create!(name: "Dawson")
-    Merchant.create!(name: "Scott")
-    Merchant.create!(name: "Cindy")
+    @merchant_1 = Merchant.create!(name: "Dawson")
+    @merchant_2 = Merchant.create!(name: "Scott")
+    @merchant_3 = Merchant.create!(name: "Cindy")
   end
   it "sends a list of merchants" do
     get '/api/v1/merchants'
@@ -21,6 +21,13 @@ describe "Merchants API" do
   end
 
   it 'can get one merchant by its id' do
+    get "/api/v1/merchants/#{@merchant_1.id}"
 
+    merchant = JSON.parse(response.body, symbolize_names: true)
+    expect(response).to be_successful
+
+    expect(merchant[:data][:attributes]).to have_key(:name)
+    expect(merchant[:data][:attributes][:name]).to be_a(String)
+    expect(merchant[:data][:attributes][:name]).to eq("Dawson")
   end
 end
