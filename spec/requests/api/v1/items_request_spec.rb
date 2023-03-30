@@ -56,6 +56,26 @@ describe "Items API" do
       expect(item[:data][:attributes][:merchant_id]).to eq(@merchant_1.id)
 
     end
+
+    it 'returns the mechant associated with the item' do
+      get "/api/v1/items/#{@item_1.id}/merchant"
+
+      expect(response).to be_successful
+
+      merchant = JSON.parse(response.body, symbolize_names: true)
+
+      expect(merchant[:data]).to have_key(:id)
+      expect(merchant[:data][:id]).to be_a(String)
+      expect(merchant[:data][:id]).to eq("#{@merchant_1.id}")
+
+      expect(merchant[:data]).to have_key(:type)
+      expect(merchant[:data][:type]).to be_a(String)
+      expect(merchant[:data][:type]).to eq("merchant")
+      
+      expect(merchant[:data][:attributes]).to have_key(:name)
+      expect(merchant[:data][:attributes][:name]).to be_a(String)
+      expect(merchant[:data][:attributes][:name]).to eq("#{@merchant_1.name}")
+    end
   end
   describe 'post requests' do 
     context 'happy path' do
@@ -102,62 +122,61 @@ describe "Items API" do
         expect(response).to be_unprocessable
       end
     end
+  end
 
-    describe 'Delete requests' do
-      it 'deletes an existing item' do
-        delete "/api/v1/items/#{@item_2.id}"
+  describe 'Delete requests' do
+    it 'deletes an existing item' do
+      delete "/api/v1/items/#{@item_2.id}"
 
-        expect(response).to be_no_content
+      expect(response).to be_no_content
+    end
+  end
+
+  describe 'update requests' do
+    context 'happy path' do
+      it 'updates an existing item' do
+        patch "/api/v1/items/#{@item_2.id}", params: {
+          item: {
+            name: "Water",
+            description: "it's wet, or is it?",
+            unit_price: 1.23,
+            merchant_id: "#{@merchant_2.id}"
+          }
+        }
+        expect(response).to be_successful
+
+        item = JSON.parse(response.body, symbolize_names: true)
+        
+        expect(item[:data][:attributes]).to have_key(:name)
+        expect(item[:data][:attributes][:name]).to be_a(String)
+        expect(item[:data][:attributes][:name]).to eq("Water")
+
+        expect(item[:data][:attributes]).to have_key(:description)
+        expect(item[:data][:attributes][:description]).to be_a(String)
+        expect(item[:data][:attributes][:description]).to eq("it's wet, or is it?")
+
+        expect(item[:data][:attributes]).to have_key(:unit_price)
+        expect(item[:data][:attributes][:unit_price]).to be_a(Float)
+        expect(item[:data][:attributes][:unit_price]).to eq(1.23)
+
+        expect(item[:data][:attributes]).to have_key(:merchant_id)
+        expect(item[:data][:attributes][:merchant_id]).to be_an(Integer)
+        expect(item[:data][:attributes][:merchant_id]).to eq(@merchant_2.id)
       end
     end
 
-    describe 'update requests' do
-      context 'happy path' do
-        it 'updates an existing item' do
-          patch "/api/v1/items/#{@item_2.id}", params: {
-            item: {
-              name: "Water",
-              description: "it's wet, or is it?",
-              unit_price: 1.23,
-              merchant_id: "#{@merchant_2.id}"
-            }
+    context 'sad path' do
+      it 'does not update the existing item with invalid param inputs' do
+        patch "/api/v1/items/#{@item_2.id}", params: {
+          item: {
+            name: '',
+            description: '',
+            unit_price: '',
+            merchant_id: ''
           }
-          expect(response).to be_successful
-
-          item = JSON.parse(response.body, symbolize_names: true)
-          
-          expect(item[:data][:attributes]).to have_key(:name)
-          expect(item[:data][:attributes][:name]).to be_a(String)
-          expect(item[:data][:attributes][:name]).to eq("Water")
-
-          expect(item[:data][:attributes]).to have_key(:description)
-          expect(item[:data][:attributes][:description]).to be_a(String)
-          expect(item[:data][:attributes][:description]).to eq("it's wet, or is it?")
-
-          expect(item[:data][:attributes]).to have_key(:unit_price)
-          expect(item[:data][:attributes][:unit_price]).to be_a(Float)
-          expect(item[:data][:attributes][:unit_price]).to eq(1.23)
-
-          expect(item[:data][:attributes]).to have_key(:merchant_id)
-          expect(item[:data][:attributes][:merchant_id]).to be_an(Integer)
-          expect(item[:data][:attributes][:merchant_id]).to eq(@merchant_2.id)
-        end
+        }
+        expect(response).to be_bad_request
       end
-
-      context 'sad path' do
-        it 'does not update the existing item with invalid param inputs' do
-          patch "/api/v1/items/#{@item_2.id}", params: {
-            item: {
-              name: '',
-              description: '',
-              unit_price: '',
-              merchant_id: ''
-            }
-          }
-          expect(response).to be_bad_request
-        end
-      end
-
     end
   end
 end
