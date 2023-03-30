@@ -14,7 +14,6 @@ class Api::V1::ItemsController < ApplicationController
     else
       render json: item.errors, status: :unprocessable_entity
     end
-
   end
 
   def update
