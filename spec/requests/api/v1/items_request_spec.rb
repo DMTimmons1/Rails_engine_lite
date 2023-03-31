@@ -8,6 +8,7 @@ describe "Items API" do
     @item_1 = Item.create!(name: "Wheat", description: "It's pretty dry", unit_price: 1.50, merchant_id: @merchant_1.id)
     @item_2 = Item.create!(name: "Gold", description: "Worth it's weight!", unit_price: 65.00, merchant_id: @merchant_1.id)
     @item_3 = Item.create!(name: "Basketball Hoop", description: "Sturdy for dunking!", unit_price: 100.00, merchant_id: @merchant_1.id)
+    @item_4 = Item.create!(name: "Basketball", description: "Essential to play!", unit_price: 60.50, merchant_id: @merchant_1.id)
   end
   describe 'get requests' do
     it "sends a list of items" do
@@ -16,7 +17,7 @@ describe "Items API" do
       expect(response).to be_successful
       items = JSON.parse(response.body, symbolize_names: true)
 
-      expect(items[:data].count).to eq(3)
+      expect(items[:data].count).to eq(4)
 
       items[:data].each do |item|
         expect(item[:attributes]).to have_key(:name)
@@ -57,24 +58,94 @@ describe "Items API" do
 
     end
 
-    it 'returns the mechant associated with the item' do
-      get "/api/v1/items/#{@item_1.id}/merchant"
+    context 'happy_path' do
+      it 'returns the mechant associated with the item' do
+        get "/api/v1/items/#{@item_1.id}/merchant"
 
-      expect(response).to be_successful
+        expect(response).to be_successful
 
-      merchant = JSON.parse(response.body, symbolize_names: true)
+        merchant = JSON.parse(response.body, symbolize_names: true)
 
-      expect(merchant[:data]).to have_key(:id)
-      expect(merchant[:data][:id]).to be_a(String)
-      expect(merchant[:data][:id]).to eq("#{@merchant_1.id}")
+        expect(merchant[:data]).to have_key(:id)
+        expect(merchant[:data][:id]).to be_a(String)
+        expect(merchant[:data][:id]).to eq("#{@merchant_1.id}")
 
-      expect(merchant[:data]).to have_key(:type)
-      expect(merchant[:data][:type]).to be_a(String)
-      expect(merchant[:data][:type]).to eq("merchant")
+        expect(merchant[:data]).to have_key(:type)
+        expect(merchant[:data][:type]).to be_a(String)
+        expect(merchant[:data][:type]).to eq("merchant")
+        
+        expect(merchant[:data][:attributes]).to have_key(:name)
+        expect(merchant[:data][:attributes][:name]).to be_a(String)
+        expect(merchant[:data][:attributes][:name]).to eq("#{@merchant_1.name}")
+      end
+
+      it 'can search for a specfic item' do
+        get "/api/v1/items/find_all?name=Basketball"
+    
+        expect(response).to be_ok
+    
+        parsed = JSON.parse(response.body, symbolize_names: true)
+
+        search_array = parsed.first.second
+        
+        search_array.each do |item|
+          expect(item[:attributes]).to have_key(:name)
+          expect(item[:attributes][:name]).to be_a(String)
+
+          expect(item[:attributes]).to have_key(:description)
+          expect(item[:attributes][:description]).to be_a(String)
+
+          expect(item[:attributes]).to have_key(:unit_price)
+          expect(item[:attributes][:unit_price]).to be_a(Float)
+
+          expect(item[:attributes]).to have_key(:merchant_id)
+          expect(item[:attributes][:merchant_id]).to be_an(Integer)
+        end
+      end
+    end
+
+    it 'can search for a specfic item' do
+      get "/api/v1/items/find_all?min_price=61"
+  
+      expect(response).to be_ok
+  
+      parsed = JSON.parse(response.body, symbolize_names: true)
+
+      search_array = parsed.first.second
       
-      expect(merchant[:data][:attributes]).to have_key(:name)
-      expect(merchant[:data][:attributes][:name]).to be_a(String)
-      expect(merchant[:data][:attributes][:name]).to eq("#{@merchant_1.name}")
+      search_array.each do |item|
+        expect(item[:attributes]).to have_key(:name)
+        expect(item[:attributes][:name]).to be_a(String)
+
+        expect(item[:attributes]).to have_key(:description)
+        expect(item[:attributes][:description]).to be_a(String)
+
+        expect(item[:attributes]).to have_key(:unit_price)
+        expect(item[:attributes][:unit_price]).to be_a(Float)
+
+        expect(item[:attributes]).to have_key(:merchant_id)
+        expect(item[:attributes][:merchant_id]).to be_an(Integer)
+      end
+    end
+
+    context 'sad_path' do
+      it 'sends an ok response if the name param is nil' do
+        get "/api/v1/items/find_all?name=Basketball"
+    
+        expect(response).to be_ok
+      end
+
+      it 'sends an ok response if the min_price param is below 0' do
+        get "/api/v1/items/find_all?min_price=-5"
+    
+        expect(response).to be_bad_request
+      end
+
+      it 'sends an ok response if the param is max price' do
+        get "/api/v1/items/find_all?max_price=100"
+    
+        expect(response).to be_bad_request
+      end
     end
   end
   describe 'post requests' do 
