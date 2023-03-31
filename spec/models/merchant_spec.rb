@@ -5,13 +5,12 @@ RSpec.describe Merchant, type: :model do
     it { should have_many :items }
   end
 
-  describe '::find_merchant' do
+  describe '::find_merchant_by_name' do
     it 'returns the merchant based off the search result' do
       @merchant_1 = Merchant.create!(name: "Dawson")
-      @merchant_2 = Merchant.create!(name: "Scott")
-      @merchant_3 = Merchant.create!(name: "Cindy")
+      @merchant_2 = Merchant.create!(name: "Dawn")
 
-      expect(Merchant.find_merchant_by_name(@merchant_1.name)).to eq(@merchant_1)
+      expect(Merchant.find_merchant_by_name("Daw")).to eq(@merchant_1)
     end
   end
 end
