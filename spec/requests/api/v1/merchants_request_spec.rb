@@ -56,16 +56,24 @@ describe "Merchants API" do
       expect(item[:attributes][:merchant_id]).to be_an(Integer)
     end
   end
+  context 'happy path' do 
+    it 'can search for a specfic merchant' do
+      get "/api/v1/merchants/find?name=DaW"
 
-  it 'can search for a specfic merchant' do
-    get "/api/v1/merchants/find?name=DaW"
+      expect(response).to be_ok
 
-    expect(response).to be_ok
+      merchant = JSON.parse(response.body, symbolize_names: true)
+      
+      expect(merchant[:data][:attributes]).to have_key(:name)
+      expect(merchant[:data][:attributes][:name]).to be_a(String)
+      expect(merchant[:data][:attributes][:name]).to eq("Dawson")
+    end
+  end
+  context 'sad path' do
+    it 'sends an ok response when there is no match' do
+      get "/api/v1/merchants/find?name=NOMATCH"
 
-    merchant = JSON.parse(response.body, symbolize_names: true)
-    
-    expect(merchant[:data][:attributes]).to have_key(:name)
-    expect(merchant[:data][:attributes][:name]).to be_a(String)
-    expect(merchant[:data][:attributes][:name]).to eq("Dawson")
+      expect(response).to be_ok
+    end
   end
 end
