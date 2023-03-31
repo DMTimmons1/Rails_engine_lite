@@ -1,8 +1,8 @@
-##setup
+## Setup
 
-1. Fork and clone
+1. Fork and Clone
 
-2. Run Rails db:{drop,create,migrate,seed}
+2. Run rails db:{drop,create,migrate,seed}
 
 3. Run rails db:schema:dump
 
