@@ -56,4 +56,16 @@ describe "Merchants API" do
       expect(item[:attributes][:merchant_id]).to be_an(Integer)
     end
   end
+
+  it 'can search for a specfic merchant' do
+    get "/api/v1/merchants/find?name=DaW"
+
+    expect(response).to be_ok
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+    
+    expect(merchant[:data][:attributes]).to have_key(:name)
+    expect(merchant[:data][:attributes][:name]).to be_a(String)
+    expect(merchant[:data][:attributes][:name]).to eq("Dawson")
+  end
 end
